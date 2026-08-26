@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>arson! — desktop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="desktop" aria-label="arson! desktop">
+    <div class="wallpaper-noise"></div>
+    <header class="topbar">
+      <div class="menu-left">
+        <span class="menu-asterisk">*</span>
+        <strong>arson!</strong>
+        <span class="menu-item active">File</span>
+        <span class="menu-item">Edit</span>
+        <span class="menu-item">View</span>
+        <span class="menu-item">Window</span>
+      </div>
+      <div class="status-right">
+        <span class="status-dot"></span>
+        <span id="clock">09:41</span>
+        <span id="status-date" class="status-date">---</span>
+        <span class="wifi">⌁</span>
+        <span id="battery-percent">--%</span>
+        <span class="battery"><i></i></span>
+      </div>
+    </header>
+
+    <section class="hero-copy">
+      <p class="eyebrow">@ars33nio // est. 2004</p>
+      <h1>arson!</h1>
+      <p class="hero-sub">beatmaker, producer, engineer, designer<br />videomaker, motion graphics</p>
+    </section>
+
+    <nav class="quick-links" aria-label="Editable links">
+      <div class="link-label">BOOKMARKS <span>↗</span></div>
+      <a href="https://soundcloud.com/ars33nio" target="_blank" rel="noreferrer"><span contenteditable="true" spellcheck="false">soundcloud</span><b>↗</b></a>
+      <a href="https://www.instagram.com/ars33nio" target="_blank" rel="noreferrer"><span contenteditable="true" spellcheck="false">instagram</span><b>↗</b></a>
+      <a href="https://www.youtube.com/@ars33nio" target="_blank" rel="noreferrer"><span contenteditable="true" spellcheck="false">youtube</span><b>↗</b></a>
+      <button class="add-link" type="button" aria-label="Add bookmark">+</button>
+    </nav>
+
+    <section class="folder-field" aria-label="Desktop folders">
+      <a class="folder" href="https://open.spotify.com/artist/1KSQiFyHRqol402cye69Jv" target="_blank" rel="noreferrer" style="--x: 9%; --y: 63%;" data-name="MUSIC">
+        <div class="folder-icon"><span></span></div><span>MUSIC</span>
+      </a>
+      <a class="folder" href="https://open.spotify.com/intl-pt/artist/1VPWtoJqQ8KJn24ouBYKip" target="_blank" rel="noreferrer" style="--x: 27%; --y: 72%;" data-name="ARCHIVE">
+        <div class="folder-icon"><span></span></div><span>ARCHIVE</span>
+      </a>
+      <div class="folder" style="--x: 61%; --y: 10%;" data-name="TOUR DATES">
+        <div class="folder-icon"><span></span></div><span>TOUR DATES</span>
+      </div>
+      <div class="folder" style="--x: 84%; --y: 51%;" data-name="PRESS KIT">
+        <div class="folder-icon"><span></span></div><span>PRESS KIT</span>
+      </div>
+    </section>
+
+    <div class="side-note">BURNOUT<br /><span>SOON</span></div>
+    <div class="corner-mark">© 2026<br />#L0NEST4R</div>
+
+    <footer class="dock-wrap">
+      <div class="dock" aria-label="Application dock">
+        <button class="dock-icon finder" aria-label="Finder"><span>⌁</span></button>
+        <button class="dock-icon grid" aria-label="Launchpad"><i></i><i></i><i></i><i></i></button>
+        <button class="dock-icon safari" aria-label="Safari">◉</button>
+        <button class="dock-icon messages" aria-label="Messages">•••</button>
+        <button class="dock-icon music" aria-label="Music">♪</button>
+        <span class="dock-separator"></span>
+        <button class="dock-icon terminal" aria-label="Terminal">›_</button>
+        <button class="dock-icon trash" aria-label="Trash">▥</button>
+      </div>
+      <div class="dock-caption">DRAG TO MOVE // CLICK TO OPEN</div>
+    </footer>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
