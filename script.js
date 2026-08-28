@@ -130,6 +130,11 @@ quickLinks.addEventListener('pointerdown', (event) => {
 });
 
 window.addEventListener('pointermove', (event) => {
+  if (floatingWindowDrag && event.pointerId === floatingWindowDrag.pointerId) {
+    event.preventDefault();
+    scheduleFloatingWindowMove(event.clientX, event.clientY);
+    return;
+  }
   if (pendingFolderDrag && event.pointerId === pendingFolderDrag.pointerId) {
     const pending = pendingFolderDrag;
     const distance = Math.hypot(event.clientX - pending.clientX, event.clientY - pending.clientY);
@@ -147,6 +152,11 @@ window.addEventListener('pointermove', (event) => {
   moveDrag(event.clientX, event.clientY);
 }, { passive: false });
 window.addEventListener('pointerup', (event) => {
+  if (floatingWindowDrag && event.pointerId === floatingWindowDrag.pointerId) {
+    if (floatingWindowDrag.frame) cancelAnimationFrame(floatingWindowDrag.frame);
+    floatingWindowDrag = null;
+    return;
+  }
   if (pendingFolderDrag && event.pointerId === pendingFolderDrag.pointerId) {
     clearTimeout(pendingFolderDrag.timer);
     if (pendingFolderDrag.moved) pendingFolderDrag.folder.dataset.dragged = 'true';
@@ -155,6 +165,11 @@ window.addEventListener('pointerup', (event) => {
   endDrag(event.pointerId);
 });
 window.addEventListener('pointercancel', (event) => {
+  if (floatingWindowDrag && event.pointerId === floatingWindowDrag.pointerId) {
+    if (floatingWindowDrag.frame) cancelAnimationFrame(floatingWindowDrag.frame);
+    floatingWindowDrag = null;
+    return;
+  }
   if (pendingFolderDrag && event.pointerId === pendingFolderDrag.pointerId) {
     clearTimeout(pendingFolderDrag.timer);
     pendingFolderDrag = null;
@@ -177,6 +192,248 @@ document.querySelectorAll('.dock-icon').forEach((icon) => {
     document.querySelectorAll('.dock-icon').forEach((item) => item.classList.remove('selected'));
     icon.classList.add('selected');
   });
+});
+
+const terminalWindow = document.querySelector('.terminal-window');
+const terminalTitlebar = document.querySelector('.terminal-titlebar');
+const terminalButton = document.querySelector('.dock-icon.terminal');
+const notesWindow = document.querySelector('.notes-window');
+const notesButton = document.querySelector('.dock-icon.notes');
+const notesTitlebar = document.querySelector('.notes-titlebar');
+const trashButton = document.querySelector('.dock-icon.trash');
+const terminalForm = document.querySelector('.terminal-content');
+const passwordInput = document.querySelector('#terminal-password');
+const terminalStatus = document.querySelector('.terminal-status');
+const statusDot = document.querySelector('.status-dot');
+const addNoteButton = document.querySelector('.add-note');
+const noteComposer = document.querySelector('.note-composer');
+const noteTitleInput = document.querySelector('.note-title-input');
+const noteBodyInput = document.querySelector('.note-body-input');
+const cancelNoteButton = document.querySelector('.cancel-note');
+const blogNote = document.querySelector('.blog-note');
+const notesList = document.querySelector('.notes-list');
+const notesCount = document.querySelector('.notes-count');
+const noteMenu = document.querySelector('.note-menu');
+const deleteNoteButton = document.querySelector('.delete-note');
+const terminalCloseButton = document.querySelector('.terminal-window .window-close');
+const notesCloseButton = document.querySelector('.notes-window .window-close');
+let isAdminMode = false;
+let floatingWindowDrag = null;
+const notesStorageKey = 'ars33nio-blog-notes';
+const defaultNotes = [{ id: 'welcome', date: 'AUG 28, 2026', title: 'Making room for the next idea', body: ['Some days start as noise: a loop, a sketch, a half-written thought. Give it a little space and it starts to become a direction.', 'Today I am collecting the small pieces, following the rhythm, and leaving the door open for whatever comes next.'] }];
+let notes = loadNotes();
+let selectedNoteId = notes[0].id;
+
+function loadNotes() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(notesStorageKey));
+    return Array.isArray(saved) && saved.length ? saved : defaultNotes;
+  } catch {
+    return defaultNotes;
+  }
+}
+
+function saveNotes() {
+  localStorage.setItem(notesStorageKey, JSON.stringify(notes));
+}
+
+function renderNotes() {
+  notesList.replaceChildren();
+  notes.forEach((note) => {
+    const entry = document.createElement('button');
+    entry.className = 'note-list-item';
+    entry.type = 'button';
+    entry.dataset.noteId = note.id;
+    entry.innerHTML = '<span></span><strong></strong><small></small>';
+    entry.querySelector('span').textContent = note.date.replace(', 2026', '');
+    entry.querySelector('strong').textContent = note.title;
+    entry.querySelector('small').textContent = note.body[0];
+    entry.addEventListener('click', () => selectNote(note.id));
+    notesList.appendChild(entry);
+  });
+  notesCount.textContent = `${notes.length} ${notes.length === 1 ? 'note' : 'notes'}`;
+  if (notes.length) selectNote(selectedNoteId, false);
+  else {
+    selectedNoteId = null;
+    blogNote.innerHTML = '<p class="blog-date">NO NOTES</p>';
+  }
+}
+
+function selectNote(noteId, hideComposer = true) {
+  const note = notes.find((item) => item.id === noteId);
+  if (!note) return;
+  selectedNoteId = note.id;
+  document.querySelectorAll('.note-list-item').forEach((item) => item.toggleAttribute('aria-current', item.dataset.noteId === note.id));
+  blogNote.innerHTML = `<p class="blog-date"></p><h2 contenteditable="${isAdminMode}" spellcheck="false"></h2>${note.body.map(() => `<p contenteditable="${isAdminMode}" spellcheck="false"></p>`).join('')}`;
+  blogNote.querySelector('.blog-date').textContent = note.date;
+  blogNote.querySelector('h2').textContent = note.title;
+  blogNote.querySelectorAll('p:not(.blog-date)').forEach((paragraph, index) => { paragraph.textContent = note.body[index]; });
+  if (hideComposer) { noteComposer.hidden = true; blogNote.hidden = false; }
+}
+
+function setAdminMode(enabled) {
+  isAdminMode = enabled;
+  statusDot.classList.toggle('is-admin', enabled);
+  addNoteButton.hidden = !enabled;
+  noteMenu.hidden = !enabled;
+  deleteNoteButton.hidden = true;
+  document.querySelector('.desktop').classList.toggle('admin-mode', enabled);
+  blogNote.querySelectorAll('[contenteditable]').forEach((item) => item.setAttribute('contenteditable', String(enabled)));
+}
+
+renderNotes();
+
+function moveFloatingWindow(clientX, clientY) {
+  if (!floatingWindowDrag) return;
+  const element = floatingWindowDrag.element;
+  const desktopRect = desktop.getBoundingClientRect();
+  const area = desktopBounds();
+  const left = Math.max(area.left, Math.min(area.right - element.offsetWidth, clientX - desktopRect.left - floatingWindowDrag.offsetX));
+  const top = Math.max(area.top, Math.min(area.bottom - element.offsetHeight, clientY - desktopRect.top - floatingWindowDrag.offsetY));
+  element.style.left = `${left}px`;
+  element.style.top = `${top}px`;
+}
+
+function scheduleFloatingWindowMove(clientX, clientY) {
+  if (!floatingWindowDrag) return;
+  floatingWindowDrag.clientX = clientX;
+  floatingWindowDrag.clientY = clientY;
+  if (floatingWindowDrag.frame) return;
+  floatingWindowDrag.frame = requestAnimationFrame(() => {
+    if (!floatingWindowDrag) return;
+    const drag = floatingWindowDrag;
+    drag.frame = null;
+    moveFloatingWindow(drag.clientX, drag.clientY);
+  });
+}
+
+terminalButton.addEventListener('click', () => {
+  terminalWindow.classList.add('is-visible');
+  terminalWindow.setAttribute('aria-hidden', 'false');
+  passwordInput.focus();
+});
+
+notesButton.addEventListener('click', () => {
+  notesWindow.classList.add('is-visible');
+  notesWindow.setAttribute('aria-hidden', 'false');
+});
+
+trashButton.addEventListener('click', () => {
+  terminalWindow.classList.remove('is-visible');
+  terminalWindow.setAttribute('aria-hidden', 'true');
+  notesWindow.classList.remove('is-visible');
+  notesWindow.setAttribute('aria-hidden', 'true');
+});
+
+terminalForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const isCorrect = passwordInput.value === 'f777';
+  terminalStatus.textContent = isCorrect ? 'password correct' : 'please try again';
+  terminalStatus.classList.toggle('is-success', isCorrect);
+  if (isCorrect) {
+    setAdminMode(true);
+  }
+  passwordInput.select();
+});
+
+addNoteButton.addEventListener('click', () => {
+  if (!isAdminMode) return;
+  noteComposer.hidden = false;
+  blogNote.hidden = true;
+  noteTitleInput.focus();
+});
+
+cancelNoteButton.addEventListener('click', () => {
+  noteComposer.hidden = true;
+  blogNote.hidden = false;
+  noteComposer.reset();
+});
+
+noteComposer.addEventListener('submit', (event) => {
+  event.preventDefault();
+  if (!isAdminMode) return;
+  const title = noteTitleInput.value.trim();
+  const body = noteBodyInput.value.trim();
+  if (!title || !body) return;
+  const newNote = { id: `note-${Date.now()}`, date: 'AUG 28, 2026', title, body: [body] };
+  notes.push(newNote);
+  selectedNoteId = newNote.id;
+  saveNotes();
+  renderNotes();
+  noteComposer.hidden = true;
+  blogNote.hidden = false;
+  noteComposer.reset();
+});
+
+blogNote.addEventListener('input', () => {
+  if (!isAdminMode) return;
+  const note = notes.find((item) => item.id === selectedNoteId);
+  if (!note) return;
+  note.title = blogNote.querySelector('h2').textContent.trim();
+  note.body = [...blogNote.querySelectorAll('p:not(.blog-date)')].map((item) => item.textContent.trim());
+  saveNotes();
+  const selectedEntry = notesList.querySelector(`[data-note-id="${selectedNoteId}"]`);
+  if (selectedEntry) {
+    selectedEntry.querySelector('strong').textContent = note.title;
+    selectedEntry.querySelector('small').textContent = note.body[0];
+  }
+});
+
+noteMenu.addEventListener('click', () => {
+  if (isAdminMode) deleteNoteButton.hidden = !deleteNoteButton.hidden;
+});
+
+deleteNoteButton.addEventListener('click', () => {
+  if (!isAdminMode) return;
+  notes = notes.filter((note) => note.id !== selectedNoteId);
+  selectedNoteId = notes[0]?.id || null;
+  saveNotes();
+  renderNotes();
+});
+
+statusDot.addEventListener('click', () => setAdminMode(false));
+terminalCloseButton.addEventListener('click', () => { terminalWindow.classList.remove('is-visible'); terminalWindow.setAttribute('aria-hidden', 'true'); });
+notesCloseButton.addEventListener('click', () => { notesWindow.classList.remove('is-visible'); notesWindow.setAttribute('aria-hidden', 'true'); });
+[terminalCloseButton, notesCloseButton].forEach((button) => button.addEventListener('pointerdown', (event) => event.stopPropagation()));
+
+terminalTitlebar.addEventListener('pointerdown', (event) => {
+  event.preventDefault();
+  const rect = terminalWindow.getBoundingClientRect();
+  const desktopRect = desktop.getBoundingClientRect();
+  floatingWindowDrag = {
+    element: terminalWindow,
+    pointerId: event.pointerId,
+    offsetX: event.clientX - rect.left,
+    offsetY: event.clientY - rect.top
+  };
+  terminalWindow.style.left = `${rect.left - desktopRect.left}px`;
+  terminalWindow.style.top = `${rect.top - desktopRect.top}px`;
+  terminalWindow.style.right = 'auto';
+  terminalWindow.style.bottom = 'auto';
+  terminalWindow.classList.add('is-dragging');
+  try {
+    terminalTitlebar.setPointerCapture(event.pointerId);
+  } catch {}
+});
+
+notesTitlebar.addEventListener('pointerdown', (event) => {
+  event.preventDefault();
+  const rect = notesWindow.getBoundingClientRect();
+  const desktopRect = desktop.getBoundingClientRect();
+  floatingWindowDrag = {
+    element: notesWindow,
+    pointerId: event.pointerId,
+    offsetX: event.clientX - rect.left,
+    offsetY: event.clientY - rect.top
+  };
+  notesWindow.style.left = `${rect.left - desktopRect.left}px`;
+  notesWindow.style.top = `${rect.top - desktopRect.top}px`;
+  notesWindow.style.right = 'auto';
+  notesWindow.style.bottom = 'auto';
+  notesWindow.classList.add('is-dragging');
+  try {
+    notesTitlebar.setPointerCapture(event.pointerId);
+  } catch {}
 });
 
 // Keep editable bookmark text from turning a click into accidental navigation.

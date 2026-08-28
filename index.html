@@ -46,16 +46,16 @@
     </nav>
 
     <section class="folder-field" aria-label="Desktop folders">
-      <a class="folder" href="https://open.spotify.com/artist/1KSQiFyHRqol402cye69Jv" target="_blank" rel="noreferrer" style="--x: 9%; --y: 63%;" data-name="MUSIC">
+      <a class="folder" href="https://open.spotify.com/artist/1KSQiFyHRqol402cye69Jv" target="_blank" rel="noreferrer" style="--x: 10%; --y: 63%;" data-name="MUSIC">
         <div class="folder-icon"><span></span></div><span>MUSIC</span>
       </a>
-      <a class="folder" href="https://open.spotify.com/intl-pt/artist/1VPWtoJqQ8KJn24ouBYKip" target="_blank" rel="noreferrer" style="--x: 27%; --y: 72%;" data-name="ARCHIVE">
+      <a class="folder" href="https://open.spotify.com/intl-pt/artist/1VPWtoJqQ8KJn24ouBYKip" target="_blank" rel="noreferrer" style="--x: 28%; --y: 72%;" data-name="ARCHIVE">
         <div class="folder-icon"><span></span></div><span>ARCHIVE</span>
       </a>
-      <div class="folder" style="--x: 61%; --y: 10%;" data-name="TOUR DATES">
+      <div class="folder" style="--x: 62%; --y: 10%;" data-name="TOUR DATES">
         <div class="folder-icon"><span></span></div><span>TOUR DATES</span>
       </div>
-      <div class="folder" style="--x: 84%; --y: 51%;" data-name="PRESS KIT">
+      <div class="folder" style="--x: 85%; --y: 51%;" data-name="PRESS KIT">
         <div class="folder-icon"><span></span></div><span>PRESS KIT</span>
       </div>
     </section>
@@ -65,17 +65,64 @@
 
     <footer class="dock-wrap">
       <div class="dock" aria-label="Application dock">
-        <button class="dock-icon finder" aria-label="Finder"><span>⌁</span></button>
-        <button class="dock-icon grid" aria-label="Launchpad"><i></i><i></i><i></i><i></i></button>
-        <button class="dock-icon safari" aria-label="Safari">◉</button>
-        <button class="dock-icon messages" aria-label="Messages">•••</button>
+        <button class="dock-icon finder" aria-label="Finder"></button>
+        <button class="dock-icon mail" aria-label="Mail"><span class="mail-envelope" aria-hidden="true"></span></button>
+        <button class="dock-icon notes" aria-label="Notes"></button>
+        <button class="dock-icon shopping" aria-label="Shopping bag" disabled></button>
         <button class="dock-icon music" aria-label="Music">♪</button>
         <span class="dock-separator"></span>
         <button class="dock-icon terminal" aria-label="Terminal">›_</button>
-        <button class="dock-icon trash" aria-label="Trash">▥</button>
+        <button class="dock-icon trash" aria-label="Trash"></button>
       </div>
       <div class="dock-caption">DRAG TO MOVE // CLICK TO OPEN</div>
     </footer>
+
+    <section class="terminal-window" aria-label="Terminal window" aria-hidden="true">
+      <div class="terminal-titlebar">
+        <span class="terminal-lights" aria-hidden="true"><button class="window-close" type="button" aria-label="Close terminal"></button><i></i><i></i></span>
+        <strong>terminal — zsh — 80×24</strong>
+      </div>
+      <form class="terminal-content">
+        <label for="terminal-password">user@ars33nio-desktop ~ % <span>password</span></label>
+        <input id="terminal-password" type="password" autocomplete="off" aria-label="Password" />
+        <p class="terminal-status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="notes-window" aria-label="Notes blog window" aria-hidden="true">
+      <div class="notes-titlebar">
+        <span class="terminal-lights" aria-hidden="true"><button class="window-close" type="button" aria-label="Close Notes"></button><i></i><i></i></span>
+        <strong>Notes</strong>
+        <span class="notes-count">1 note</span>
+      </div>
+      <div class="notes-app">
+        <aside class="notes-sidebar" aria-label="Blog entries">
+          <div class="notes-sidebar-heading"><span>All Notes</span><button class="add-note" type="button" hidden>+ note</button></div>
+          <div class="notes-list">
+            <button class="note-list-item" type="button" aria-current="true">
+              <span>AUG 28</span>
+              <strong>Making room for the next idea</strong>
+              <small>Some days start as noise...</small>
+            </button>
+          </div>
+        </aside>
+        <div class="notes-editor">
+          <div class="notes-toolbar"><span>All Notes</span><button class="note-menu" type="button" hidden aria-label="Note actions">•••</button></div>
+          <article class="blog-note">
+            <p class="blog-date">AUG 28, 2026</p>
+            <h2 contenteditable="false" spellcheck="false">Making room for the next idea</h2>
+            <p contenteditable="false" spellcheck="false">Some days start as noise: a loop, a sketch, a half-written thought. Give it a little space and it starts to become a direction.</p>
+            <p contenteditable="false" spellcheck="false">Today I am collecting the small pieces, following the rhythm, and leaving the door open for whatever comes next.</p>
+          </article>
+          <button class="delete-note" type="button" hidden>delete note</button>
+          <form class="note-composer" hidden>
+            <input class="note-title-input" type="text" placeholder="Entry title" maxlength="80" required />
+            <textarea class="note-body-input" placeholder="Write your entry..." rows="5" required></textarea>
+            <div class="note-composer-actions"><button type="submit">send</button><button class="cancel-note" type="button">cancel</button></div>
+          </form>
+        </div>
+      </div>
+    </section>
   </main>
   <script src="script.js"></script>
 </body>
